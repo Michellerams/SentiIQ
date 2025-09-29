@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SentiIQ - Sentiment Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3"
+  }
+}
+</script>
+<style>
+    @layer base {
+        body {
+            background: linear-gradient(-45deg, #0f172a, #134e4a, #0c4a6e, #1e293b);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+        }
+    }
+
+    @keyframes gradient-animation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 20px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+    .animate-pulse-subtle {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Welcome Animations */
+    @keyframes border-pan {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .animate-border-pan {
+        background-size: 200% 200%;
+        animation: border-pan 3s ease-in-out infinite;
+    }
+
+    @keyframes scale-in-center {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    .animate-scale-in-center {
+        animation: scale-in-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+
+    @keyframes slide-in-top {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-slide-in-top {
+        animation: slide-in-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.3s both;
+    }
+
+    @keyframes fade-in-delay {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    .animate-fade-in-delay-1 {
+        animation: fade-in-delay 0.7s ease-in 0.6s both;
+    }
+    .animate-fade-in-delay-2 {
+        animation: fade-in-delay 0.7s ease-in 0.9s both;
+    }
+
+    /* Easter Egg Animations */
+    @keyframes particle-burst {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        animation: particle-burst 0.7s ease-out forwards;
+        pointer-events: none;
+    }
+    
+    @keyframes confetti-burst {
+        0% { transform: translateY(0%) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(150px) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes orbit {
+        from { transform: rotate(0deg) translateX(25px) rotate(0deg); }
+        to { transform: rotate(360deg) translateX(25px) rotate(-360deg); }
+    }
+    .animate-orbit {
+        animation: orbit 2s linear infinite;
+    }
+    
+    @keyframes love-float {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(-80px) scale(0.5) rotate(20deg); opacity: 0; }
+    }
+    .love-emoji {
+        position: absolute;
+        font-size: 20px;
+        animation: love-float 1.5s ease-out forwards;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    /* Recording Animation */
+    @keyframes recording-pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+        }
+    }
+    .animate-recording-pulse {
+        animation: recording-pulse 2s infinite;
+    }
+
+    /* 3D Visual Animations */
+    @keyframes spin-3d {
+        from { transform: rotateY(0deg) rotateX(5deg); }
+        to { transform: rotateY(360deg) rotateX(5deg); }
+    }
+
+    @keyframes confidence-pulse {
+        0% { box-shadow: 0 0 10px 0px var(--glow-color); }
+        50% { box-shadow: 0 0 25px 10px var(--glow-color); }
+        100% { box-shadow: 0 0 10px 0px var(--glow-color); }
+    }
+
+    /* Sentiment Distribution Visual */
+    @keyframes float-1 {
+        0% { transform: translate(0px, 0px); }
+        25% { transform: translate(10px, 20px); }
+        50% { transform: translate(-15px, -10px); }
+        75% { transform: translate(5px, -15px); }
+        100% { transform: translate(0px, 0px); }
+    }
+
+    @keyframes float-2 {
+        0% { transform: translate(0px, 0px); }
+        25% { transform: translate(-20px, 10px); }
+        50% { transform: translate(10px, -15px); }
+        75% { transform: translate(-5px, 5px); }
+        100% { transform: translate(0px, 0px); }
+    }
+
+    @keyframes float-3 {
+        0% { transform: translate(0px, 0px); }
+        25% { transform: translate(15px, -15px); }
+        50% { transform: translate(-10px, 20px); }
+        75% { transform: translate(10px, 5px); }
+        100% { transform: translate(0px, 0px); }
+    }
+
+    @keyframes float-4 {
+        0% { transform: translate(0px, 0px); }
+        25% { transform: translate(-10px, -15px); }
+        50% { transform: translate(20px, 10px); }
+        75% { transform: translate(-15px, 15px); }
+        100% { transform: translate(0px, 0px); }
+    }
+
+    @keyframes spin-dice {
+        from { transform: rotateX(0deg) rotateY(0deg); }
+        to   { transform: rotateX(360deg) rotateY(720deg); }
+    }
+
+    .dice-container {
+        position: absolute;
+        transform-style: preserve-3d;
+        transition: transform 0.3s ease-out;
+        will-change: transform;
+    }
+
+    .dice-container:hover {
+        animation-play-state: paused !important;
+        transform: scale(1.25) !important;
+        z-index: 999 !important;
+    }
+
+    .dice-container:hover .dice {
+        animation-play-state: paused !important;
+    }
+
+    .dice {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        animation: spin-dice 20s linear infinite;
+    }
+
+    .dice-face {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-width: 2px;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden; /* For Safari */
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .dice-face.front  { transform: rotateY(0deg)   translateZ(calc(var(--dice-size) / 2)); }
+    .dice-face.back   { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2)); }
+    .dice-face.right  { transform: rotateY(90deg)  translateZ(calc(var(--dice-size) / 2)); }
+    .dice-face.left   { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+    .dice-face.top    { transform: rotateX(90deg)  translateZ(calc(var(--dice-size) / 2)); }
+    .dice-face.bottom { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+
+    /* Custom Cursor Styles */
+    body, button, a, input, textarea, label {
+        cursor: none;
+    }
+
+    .cursor-dot, .cursor-follower {
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        will-change: transform;
+    }
+
+    .cursor-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #e2e8f0; /* slate-200 */
+    }
+
+    .cursor-follower {
+        width: 40px;
+        height: 40px;
+        background-color: rgba(14, 165, 233, 0.2); /* sky-500 with opacity */
+        border: 1px solid rgba(14, 165, 233, 0.5);
+        transition: transform 0.15s ease-out, width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .cursor-follower.cursor-hover {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(16, 185, 129, 0.3); /* green-500 with opacity */
+        border-color: rgba(16, 185, 129, 0.6);
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    .animate-fadeOut {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% {
+            box-shadow: 0 0 15px 5px rgba(14, 165, 233, 0.3), 0 0 5px 0px rgba(14, 165, 233, 0.5);
+        }
+        50% {
+            box-shadow: 0 0 25px 10px rgba(14, 165, 233, 0.5), 0 0 10px 2px rgba(14, 165, 233, 0.7);
+        }
+    }
+
+
+</style>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

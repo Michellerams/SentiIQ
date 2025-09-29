@@ -1,0 +1,8 @@
+{
+  "name": "SentiIQ",
+  "description": "An interactive dashboard to analyze sentiment in text data. It provides multi-class sentiment classification, confidence scores, keyword extraction, and visualizations for customer reviews, social media posts, or other text content.",
+  "requestFramePermissions": [
+    "microphone",
+    "display-capture"
+  ]
+}
